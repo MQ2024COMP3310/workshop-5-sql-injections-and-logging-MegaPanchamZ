@@ -29,7 +29,7 @@ public class App {
 
     private static final Logger logger = Logger.getLogger(App.class.getName());
     // End code for logging exercise
-    
+
     /**
      * @param args the command line arguments
      */
@@ -56,37 +56,42 @@ public class App {
             String line;
             int i = 1;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                wordleDatabaseConnection.addValidWord(i, line);
+                wordleDatabaseConnection.addValidWord(i, line); // This now logs internally
                 i++;
             }
-
         } catch (IOException e) {
-            System.out.println("Not able to load . Sorry!");
-            System.out.println(e.getMessage());
-            return;
+            logger.log(Level.WARNING, "Problem loading words from file.", e);
+            System.out.println("An error occurred loading data. Please try again later.");
         }
 
         // let's get them to enter a word
 
         try (Scanner scanner = new Scanner(System.in)) {
-            System.out.print("Enter a 4 letter word for a guess or q to quit: ");
+            System.out.print("Enter a 4-letter word for a guess or q to quit: ");
             String guess = scanner.nextLine();
 
-            while (!guess.equals("q")) {
-                System.out.println("You've guessed '" + guess+"'.");
+            // Regular expression for validation
+            String validPattern = "^[a-z]{4}$";
 
-                if (wordleDatabaseConnection.isValidWord(guess)) { 
-                    System.out.println("Success! It is in the the list.\n");
-                }else{
-                    System.out.println("Sorry. This word is NOT in the the list.\n");
+            while (!guess.equals("q")) {
+                if (guess.matches(validPattern)) {
+                    System.out.println("You've guessed '" + guess + "'.");
+                    if (wordleDatabaseConnection.isValidWord(guess)) {
+                        System.out.println("Success! It is in the list.\n");
+                    } else {
+                        System.out.println("Sorry. This word is NOT in the list.\n");
+                    }
+                } else {
+                    logger.log(Level.INFO, "Invalid guess made: " + guess);
+                    System.out.println("Not an acceptable input! Please enter a 4-letter word.");
                 }
 
-                System.out.print("Enter a 4 letter word for a guess or q to quit: " );
+                System.out.print("Enter a 4-letter word for a guess or q to quit: ");
                 guess = scanner.nextLine();
             }
         } catch (NoSuchElementException | IllegalStateException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "An error occurred during user interaction", e);
+            System.out.println("An unexpected error occurred. Please try again.");
         }
 
     }
